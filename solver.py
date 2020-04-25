@@ -5,12 +5,14 @@ from typing import List, Tuple, Optional, Set
 
 from sudoku import Sudoku
 
+debug: bool = False
+
 
 class Solver:
     solutions: List[str] = []
 
     @staticmethod
-    def solve(sudoku_str: str) -> Set[str]:
+    def solve(sudoku_str: str, solve_all=False) -> Set[str]:
         """Build and solve Sudoku"""
         sudoku = Solver.deserialize_from_str(sudoku_str)
 
@@ -31,8 +33,8 @@ class Solver:
         iterations = 0
         solutions = set()
         while len(stack) > 0:
-            print('Working on stack, iteration =', iterations, ', stack size:', len(stack), 'solutions:',
-                  len(solutions))
+            # print('Working on stack, iter=' + str(iterations) + '/stack size:' + str(len(stack)) + '/sol: ' + str(
+            #    len(solutions)))
             iterations += 1
             candidates, last_guess = stack[-1]
 
@@ -55,27 +57,38 @@ class Solver:
                 next_guess = possible_guesses[idx + 1]
 
             # Do next_guess
-            print('Do next guess:', next_guess)
+            Solver.log('Do next guess: ' + str(next_guess))
             idx, value = next_guess
-            sudoku.cells[idx].candidates = value
+            sudoku.cells[idx].set_guess(value)
             sudoku.propagate()
+
+            # Solver.show(sudoku)
 
             # If still solvable, push to stack, else iterate
             if sudoku.solved():
-                print('Solve loop: Found solution! Adding to solutions.')
-                solutions.add(str(sudoku))
-                stack[-1] = (candidates, next_guess)
+                Solver.log('Solve loop: Found solution! Adding to solutions.')
+                if not solve_all:
+                    return {str(sudoku)}
+                else:
+                    solutions.add(str(sudoku))
+                    stack[-1] = (candidates, next_guess)
             elif not sudoku.valid():
                 # Update latest guess
-                print('Solve loop: Invalid Sudoku, update guess on last stack item.')
+                Solver.log('Solve loop: Invalid Sudoku, update guess on last stack item.')
                 stack[-1] = (candidates, next_guess)
             else:
-                print('Solve loop: Sudoku not solved after propagation but still valid, adding to stack.')
+                Solver.log('Solve loop: Sudoku not solved after propagation but still valid, adding to stack.')
                 stack.append((sudoku.serialize(), None))
 
         # For now, just return single solution
-        print('Finished checking, found solutions:', solutions)
+        Solver.log('Finished checking, found solutions:' + str(solutions))
         return solutions
+
+    @staticmethod
+    def log(s: str) -> None:
+        """Print to console if debug mode is on"""
+        if debug:
+            print(s)
 
     @staticmethod
     def deserialize_from_str(sudoku_str: str):
@@ -127,12 +140,13 @@ class Solver:
         """
         Calculate guesses based on a Sudoku.
         This should be stable, as we depend on the order to check how far we're already with guessing.
-        This can be optimized for guessing small candidate lists first.
+        The order of guesses is optimized for small candidate lists first.
         """
         guesses = []
         for cell in sudoku.cells:
             # If no single candidate on cell, we can guess.
             if len(cell.candidates) > 1:
                 for c in cell.candidates:
-                    guesses.append((cell.cell_id, c))
-        return guesses
+                    guesses.append((cell.cell_id, c, len(cell.candidates)))
+        sorted_guesses = sorted(guesses, key=lambda x: x[2])
+        return [(g[0], g[1]) for g in sorted_guesses]
