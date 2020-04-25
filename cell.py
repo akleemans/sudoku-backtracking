@@ -10,10 +10,10 @@ class Cell:
     color: str = 'blue'
     cell_id: int
 
-    def __init__(self, value: str, cell_id: int):
+    def __init__(self, candidates: str, cell_id: int):
         self.cell_id = cell_id
-        if value != '.':
-            self.candidates = value
+        self.candidates = candidates
+        if len(candidates) == 1:
             self.initial = True
             self.color = 'black'
 
