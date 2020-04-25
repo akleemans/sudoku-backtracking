@@ -1,7 +1,8 @@
 import csv
+
 import time
 
-from sudoku import Sudoku
+from solver import Solver
 
 with open('sudokus.csv') as csv_file:
     csv_reader = csv.reader(csv_file, delimiter='|', quotechar='"')
@@ -9,11 +10,9 @@ with open('sudokus.csv') as csv_file:
 
 sudoku = sudokus[0]
 
-s = Sudoku(sudoku[0])
 print('Solving with difficulty "' + sudoku[2] + '"')
-s.show()
 start = time.time()
-s.solve()
+solved_str = Solver.solve(sudoku[0])
 end = time.time()
-s.show()
+Solver.show(Solver.deserialize_from_str(solved_str))
 print('Solved in', round(end - start, 8), 's')
