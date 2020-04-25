@@ -33,13 +33,16 @@ class Solver:
         iterations = 0
         solutions = set()
         while len(stack) > 0:
-            # print('Working on stack, iter=' + str(iterations) + '/stack size:' + str(len(stack)) + '/sol: ' + str(
-            #    len(solutions)))
+            if iterations % 100 == 0:
+                print('>> Iteration ' + str(iterations) + ' /stack:' + str(len(stack)) + '/sol: ' + str(len(solutions)))
+            Solver.log(
+                '>> Iteration ' + str(iterations) + ' /stack:' + str(len(stack)) + '/sol: ' + str(len(solutions)))
             iterations += 1
             candidates, last_guess = stack[-1]
 
             # Create Sudoku from "serialized" form
             sudoku = Sudoku(candidates)
+            # Solver.show(sudoku)
 
             # Calculate list of possible guesses.
             # Guesses look like (41, '9'): "At index 41, try value '9'"
@@ -61,8 +64,6 @@ class Solver:
             idx, value = next_guess
             sudoku.cells[idx].set_guess(value)
             sudoku.propagate()
-
-            # Solver.show(sudoku)
 
             # If still solvable, push to stack, else iterate
             if sudoku.solved():
@@ -93,8 +94,7 @@ class Solver:
     @staticmethod
     def deserialize_from_str(sudoku_str: str):
         """Build a Sudoku from a 12..5.42. etc list"""
-        all_c = '123456789'
-        return Sudoku([v if v != '.' else all_c for v in sudoku_str])
+        return Sudoku([v if v != '.' else '123456789' for v in sudoku_str])
 
     @staticmethod
     def show(sudoku: Sudoku):
@@ -105,7 +105,7 @@ class Solver:
         for i in range(len(sudoku.cells)):
             cell = sudoku.cells[i]
             label = Label(window, text=str(cell), width=4, height=2, borderwidth=1, relief="solid",
-                          font=("Helvetica", 22), fg=cell.color)
+                          font=("Helvetica", 22), fg='black')
             c = i % 9
             r = int((i - i % 9) / 9)
             padx = 2 if c % 3 == 1 else 0
@@ -138,9 +138,9 @@ class Solver:
     @staticmethod
     def calculate_guesses(sudoku: Sudoku) -> List[Tuple[int, str]]:
         """
-        Calculate guesses based on a Sudoku.
+        Calculate a list of guesses based on a partially filled Sudoku.
         This should be stable, as we depend on the order to check how far we're already with guessing.
-        The order of guesses is optimized for small candidate lists first.
+        The order of guesses is optimized for small candidate lists first (minimum remaining values).
         """
         guesses = []
         for cell in sudoku.cells:

@@ -7,10 +7,10 @@ from cell import Cell
 
 class Sudoku:
     cells: List[Cell]
-    units: List[List[Cell]] = []
+    units: List[List[Cell]]
 
     def __init__(self, candidate_list: List[str]):
-        # Init cells
+        """Initialize Sudoku with a list of candidates for each cell"""
         self.cells = []
         for i in range(len(candidate_list)):
             candidates = candidate_list[i]
@@ -41,14 +41,15 @@ class Sudoku:
             cell.peers = row | col | block
 
         # Build units
-        for c in range(9):
-            row = [cell for cell in self.cells[c * 9:(c + 1) * 9]]
+        self.units = []
+        for idx in range(9):
+            row = [c for c in self.cells[idx * 9:(idx + 1) * 9]]
             self.units.append(row)
 
-        for r in range(9):
+        for r_idx in range(9):
             col = []
-            for c in range(9):
-                col.append(self.cells[r + c * 9])
+            for c_idx in range(9):
+                col.append(self.cells[r_idx + c_idx * 9])
             self.units.append(col)
 
         for i in [0, 3, 6, 27, 30, 33, 54, 57, 60]:
@@ -69,15 +70,14 @@ class Sudoku:
         return block_idx
 
     def propagate(self):
-        """
-        Propagate constraints:
+        """Propagate constraints:
             (1) If a cell holds a value, no other peer of cell can hold that value.
             (2) If a value can only be held by a single cell in unit, that cell can not hold another value.
         """
         h = 81 * 9
         while self.valid() and self.get_hash() != h:
             h = self.get_hash()
-            # print('Propagating with total candidates =', h)
+            # print('Propagating. h =', h)
             # Propagate (1)
             for cell in self.cells:
                 cell.propagate_to_peers()
@@ -97,10 +97,13 @@ class Sudoku:
                             break
                 if quit_flag:
                     break
+        #print('Finished propagating, h =', h)
+        #input()
 
     def get_hash(self) -> int:
         """Calculate hash to detect changes"""
         candidates = sum([len(cell.candidates) for cell in self.cells])
+        # candidates = len(''.join(c.candidates for c in self.cells))
         return candidates
 
     def valid(self) -> bool:
@@ -109,10 +112,10 @@ class Sudoku:
         if not all([cell.valid() for cell in self.cells]):
             return False
 
-        # Check for units
+        # Check if units can still contain all numbers
         for unit in self.units:
             all_candidates = ''.join([c.candidates for c in unit])
-            if not all([str(v) in all_candidates for v in range(1, 10)]):
+            if not all([(str(v) in all_candidates) for v in range(1, 10)]):
                 return False
         return True
 
@@ -125,5 +128,5 @@ class Sudoku:
         return [cell.candidates for cell in self.cells]
 
     def __str__(self) -> str:
-        """Print the Sudoku"""
+        """Return a condensed string representation of the Sudoku"""
         return ''.join(str(c) for c in self.cells).replace(' ', '.')
