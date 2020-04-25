@@ -8,7 +8,6 @@ from cell import Cell
 class Sudoku:
     cells: List[Cell]
     units: List[List[Cell]] = []
-    solutions: List[str] = []
 
     def __init__(self, candidate_list: List[str]):
         # Init cells
@@ -76,14 +75,15 @@ class Sudoku:
             (2) If a value can only be held by a single cell in unit, that cell can not hold another value.
         """
         h = 81 * 9
-        while self.get_hash() != h:
+        while self.valid() and self.get_hash() != h:
             h = self.get_hash()
-            print('Propagating with total candidates =', h)
+            # print('Propagating with total candidates =', h)
             # Propagate (1)
             for cell in self.cells:
                 cell.propagate_to_peers()
             # Propagate (2)
             for unit in self.units:
+                quit_flag = False
                 all_candidates = ''.join([c.candidates for c in unit])
                 for i in range(1, 10):
                     value = str(i)
@@ -93,6 +93,10 @@ class Sudoku:
                         if len(cell.candidates) > 1:
                             # print(cell.cell_id, 'Removing candidates:', cell.candidates, 'can only be', value)
                             cell.candidates = value
+                            quit_flag = True
+                            break
+                if quit_flag:
+                    break
 
     def get_hash(self) -> int:
         """Calculate hash to detect changes"""
@@ -101,7 +105,16 @@ class Sudoku:
 
     def valid(self) -> bool:
         """Checks if Sudoku still solvable"""
-        return all([cell.valid() for cell in self.cells])
+        # Check if all cells are still valid
+        if not all([cell.valid() for cell in self.cells]):
+            return False
+
+        # Check for units
+        for unit in self.units:
+            all_candidates = ''.join([c.candidates for c in unit])
+            if not all([str(v) in all_candidates for v in range(1, 10)]):
+                return False
+        return True
 
     def solved(self):
         """Checks if Sudoku is solved"""

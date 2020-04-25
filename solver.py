@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from tkinter import *
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, Set
 
 from sudoku import Sudoku
 
@@ -10,18 +10,17 @@ class Solver:
     solutions: List[str] = []
 
     @staticmethod
-    def solve(sudoku_str: str) -> str:
+    def solve(sudoku_str: str) -> Set[str]:
         """Build and solve Sudoku"""
         sudoku = Solver.deserialize_from_str(sudoku_str)
 
         # initial propagation
         sudoku.propagate()
-
-        Solver.show(sudoku)
+        # Solver.show(sudoku)
 
         # If already solved or unsolvable, return
         if sudoku.solved():
-            return str(sudoku)
+            return {str(sudoku)}
         if not sudoku.valid():
             raise ValueError('Unsolvable Sudoku!')
 
@@ -30,17 +29,19 @@ class Solver:
 
         # Work on stack with Depth-First-Search (DFS)
         iterations = 0
+        solutions = set()
         while len(stack) > 0:
-            print('Working on stack, iteration =', iterations, ', stack size:', len(stack))
+            print('Working on stack, iteration =', iterations, ', stack size:', len(stack), 'solutions:',
+                  len(solutions))
             iterations += 1
             candidates, last_guess = stack[-1]
-            # TODO
+
+            # Create Sudoku from "serialized" form
+            sudoku = Sudoku(candidates)
+
             # Calculate list of possible guesses.
             # Guesses look like (41, '9'): "At index 41, try value '9'"
-
-            # Create Sudoku from "serialized form"
-            sudoku = Sudoku(candidates)
-            possible_guesses: List[Tuple[int, str]] = Solver.get_guesses(sudoku)
+            possible_guesses: List[Tuple[int, str]] = Solver.calculate_guesses(sudoku)
 
             if possible_guesses[-1] == last_guess:
                 # End is reached in this branch
@@ -62,8 +63,8 @@ class Solver:
             # If still solvable, push to stack, else iterate
             if sudoku.solved():
                 print('Solve loop: Found solution! Adding to solutions.')
-                sudoku.solutions.append(str(sudoku))
-                stack.pop()
+                solutions.add(str(sudoku))
+                stack[-1] = (candidates, next_guess)
             elif not sudoku.valid():
                 # Update latest guess
                 print('Solve loop: Invalid Sudoku, update guess on last stack item.')
@@ -73,8 +74,8 @@ class Solver:
                 stack.append((sudoku.serialize(), None))
 
         # For now, just return single solution
-        solution = sudoku.solutions[0]
-        return solution
+        print('Finished checking, found solutions:', solutions)
+        return solutions
 
     @staticmethod
     def deserialize_from_str(sudoku_str: str):
@@ -122,7 +123,7 @@ class Solver:
         print(s)
 
     @staticmethod
-    def get_guesses(sudoku: Sudoku) -> List[Tuple[int, str]]:
+    def calculate_guesses(sudoku: Sudoku) -> List[Tuple[int, str]]:
         """
         Calculate guesses based on a Sudoku.
         This should be stable, as we depend on the order to check how far we're already with guessing.
