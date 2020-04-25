@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List, Set, Optional
+from typing import Set
 
 
 class Cell:
@@ -17,11 +17,6 @@ class Cell:
             self.initial = True
             self.color = 'black'
 
-    def add_peers(self, peers: Set[Cell]) -> None:
-        """Convenience method to add peers"""
-        self.peers = self.peers | peers
-        print(self.cell_id, 'has now # of peers:', len(self.peers))
-
     def propagate_to_peers(self) -> None:
         """Propagate own number to peers (if set)"""
         if len(self.candidates) == 1:
@@ -31,17 +26,12 @@ class Cell:
     def remove_candidate(self, value: str) -> None:
         """Remove value from candidates"""
         if value in self.candidates:
-            print(self.cell_id, 'Removing', value, 'from candidates:', self.candidates)
+            # print(self.cell_id, 'Removing', value, 'from candidates:', self.candidates)
             self.candidates = self.candidates.replace(value, '')
 
     def __str__(self) -> str:
         """Return printable value"""
         return self.candidates if len(self.candidates) == 1 else ' '
-
-#    def reset(self) -> None:
-#        """Reset cell to start state"""
-#        if not self.initial:
-#            self.candidates = '123456789'
 
     def valid(self) -> bool:
         """Returns if cell still valid"""

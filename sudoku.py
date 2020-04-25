@@ -6,12 +6,13 @@ from cell import Cell
 
 
 class Sudoku:
-    cells: List[Cell] = []
+    cells: List[Cell]
     units: List[List[Cell]] = []
     solutions: List[str] = []
 
     def __init__(self, candidate_list: List[str]):
         # Init cells
+        self.cells = []
         for i in range(len(candidate_list)):
             candidates = candidate_list[i]
             cell = Cell(candidates, i)
@@ -23,7 +24,6 @@ class Sudoku:
             cell = self.cells[i]
             idx = i - i % 9
             row = set(c for c in self.cells[idx:idx + 9] if c != cell)
-            cell.add_peers(row)
 
             # column
             cell = self.cells[i]
@@ -34,11 +34,12 @@ class Sudoku:
                 c = self.cells[idx]
                 if c != cell:
                     col.add(c)
-            cell.add_peers(col)
 
             # 3x3 block
             block = set(self.cells[idx] for idx in self.get_block_ids(i) if idx != i)
-            cell.add_peers(block)
+
+            # Set peers on cell
+            cell.peers = row | col | block
 
         # Build units
         for c in range(9):
@@ -77,7 +78,7 @@ class Sudoku:
         h = 81 * 9
         while self.get_hash() != h:
             h = self.get_hash()
-            print('Propagating with hash =', h)
+            print('Propagating with total candidates =', h)
             # Propagate (1)
             for cell in self.cells:
                 cell.propagate_to_peers()
@@ -90,7 +91,7 @@ class Sudoku:
                     if all_candidates.count(value) == 1:
                         cell = [c for c in unit if value in c.candidates].pop()
                         if len(cell.candidates) > 1:
-                            print(cell.cell_id, 'Removing candidates:', cell.candidates, 'can only be', value)
+                            # print(cell.cell_id, 'Removing candidates:', cell.candidates, 'can only be', value)
                             cell.candidates = value
 
     def get_hash(self) -> int:
