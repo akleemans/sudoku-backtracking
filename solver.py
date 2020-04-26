@@ -102,7 +102,7 @@ class Solver:
 
     @staticmethod
     def show(sudoku: Sudoku):
-        """Show GUI"""
+        """Show Sudoku in a tkinter GUI"""
         window = Tk()
         window.geometry("480x500")
         window.title("Sudoku")
@@ -115,7 +115,7 @@ class Solver:
                     [' '.join([(str(i) if str(i) in cell.candidates else ' ') for i in range(j * 3 + 1, j * 3 + 3 + 1)])
                      for j in range(3)])
                 label = Label(window, text=value, width=6, height=3, borderwidth=1, relief="solid",
-                              font=("Helvetica", 14), fg='black')
+                              font=("Helvetica", 14), fg='blue')
             else:
                 label = Label(window, text=value, width=4, height=2, borderwidth=1, relief="solid",
                               font=("Helvetica", 22), fg='black')
