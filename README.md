@@ -20,7 +20,7 @@ Inspired by [Ali Spittel's post](https://medium.com/free-code-camp/coming-back-t
 
 ### Benchmarking
 
-On my 2013 MacBook Pro (2.7 GHz Dual-Core Intel Core i5), the solver performs like this:
+On my 2015 MacBook Pro (2.7 GHz Dual-Core Intel Core i5), the solver performs like this:
 
 * `magictour_easy.csv`: 1011 puzzles in 28.26 seconds (0.028s per puzzle) 
 * `magictour_hard.csv`: 95 puzzles in 20.68 seconds (0.218s per puzzle)
