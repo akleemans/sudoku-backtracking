@@ -31,83 +31,52 @@ class Solver:
         # 1. current Sudoku as List of candidates,
         # 2. The guess next up for next layer in format (41, '9'): "At index 41, try value '9'"
         # Note that current_guess means next guess to try on the current layer, and the tried guess on an earlier layer.
-        next_guess = Solver.calculate_guesses(sudoku)[0]
-        stack: List[Tuple[List[str], Optional[Tuple[int, str]]]] = [(sudoku.serialize(), next_guess)]
+        # next_guess = Solver.calculate_guesses(sudoku)[0]
+        stack: List[Tuple[List[str], Optional[Tuple[int, str]]]] = [(sudoku.serialize(), None)]
 
         # Work on stack with Depth-First-Search (DFS)
         iterations = 0
         solutions = set()
         while len(stack) > 0:
             if iterations % 100 == 0:
-                print('>> Iteration ' + str(iterations) + ' /stack:' + str(len(stack)) + '/sol: ' + str(len(solutions)))
-            Solver.log('>> Iteration ' + str(iterations) + ' / stack size:' + str(len(stack)) + '/ solutions: ' + str(
-                len(solutions)) + ' path: ' + str([i[1] for i in stack]))
+                print('>> Iteration ' + str(iterations) + ' /stack:' + str(len(stack)) + '/sol: ' + ' path: ' + str([i[1] for i in stack]))
+            Solver.log('>> Iteration ' + str(iterations) + ' / stack size:' + str(len(stack)) + ' path: ' + str([i[1] for i in stack]))
             iterations += 1
-            candidates, current_guess = stack[-1]
 
-            # Create Sudoku from "serialized" form
+            # 1. Pop state and calculate next guess
+            candidates, last_guess = stack.pop()
             sudoku.set_state(candidates)
 
-            if current_guess is None:
-                # If no more guess, pop element and iterate on next upper layer
-                stack.pop()
-                possible_guesses = Solver.calculate_guesses(sudoku)
+            if debug:
+                Solver.show(sudoku)
+                # Solver.show_console(sudoku)
+
+            possible_guesses = Solver.calculate_guesses(sudoku)
+            if last_guess is None:
+                # Just starting on this layer
                 next_guess = possible_guesses[0]
-                stack[-1] = (stack[-1][0], next_guess)
-                continue
+            else:
+                last_guess_idx = possible_guesses.index(last_guess)
+                if last_guess_idx + 1 == len(possible_guesses):
+                    # No more guesses possible, go up
+                    continue
+                next_guess = possible_guesses[last_guess_idx + 1]
 
-            # possible_guesses: List[Tuple[int, str]] = Solver.calculate_guesses(sudoku)
-            # if possible_guesses[-1] == current_guess:
-            #    # End is reached in this branch
-            #    stack.pop()
-            #    continue
-            # elif current_guess is None:
-            #    # Try first guess
-            #    next_guess = possible_guesses[0]
-            # else:
-            #    idx = possible_guesses.index(current_guess)
-            #    next_guess = possible_guesses[idx + 1]
-
-            # Do next_guess
-            Solver.log('Do proposed guess: ' + str(current_guess))
-            idx, value = current_guess
+            # 2. Do the guess
+            idx, value = next_guess
             sudoku.cells[idx].candidates = value
             sudoku.propagate()
 
-            if debug:
-                # Solver.show(sudoku)
-                Solver.show_console(sudoku)
-
-            # If still solvable, push to stack, else iterate
+            # 3. Decide how to proceed
             if sudoku.solved():
-                Solver.log('Solve loop: Found solution! Adding to solutions.')
+                Solver.log('Solve loop: Found solution!')
                 return {str(sudoku)}
-            # TODO rework for multiple / all solutions
-#                if not solve_all:
-#                    return {str(sudoku)}
-#                else:
-#                    solutions.add(str(sudoku))
-#                    stack[-1] = (candidates, next_guess)
-            elif not sudoku.valid():
-                # Update latest guess
-                Solver.log('Solve loop: Invalid Sudoku, move on to next guess on last stack item.')
-                sudoku.set_state(candidates)
-                possible_guesses = Solver.calculate_guesses(sudoku)
-                idx = possible_guesses.index(current_guess) + 1
-                if idx == len(possible_guesses):
-                    # We already worked on last guess, mark stack to go back
-                    stack[-1] = (candidates, None)
-                else:
-                    # Try next possibility on state
-                    next_guess = possible_guesses[idx]
-                    stack[-1] = (candidates, next_guess)
-            else:
-                # Proceed to next layer
-                Solver.log('Solve loop: Sudoku not solved after propagation but still valid, adding to stack.')
-                stack[-1] = (candidates, next_guess)
-                possible_guesses = Solver.calculate_guesses(sudoku)
-                next_guess = possible_guesses[0]
-                stack.append((sudoku.serialize(), next_guess))
+
+            # Add current guess to stack
+            stack.append((candidates, next_guess))
+
+            if sudoku.valid():
+                stack.append((sudoku.serialize(), None))
 
         # For now, just return single solution
         Solver.log('Finished checking, found solutions:' + str(solutions))

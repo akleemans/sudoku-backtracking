@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List, Set, Optional
+from typing import List, Optional
 
 from cell import Cell
 
@@ -76,9 +76,8 @@ class Sudoku:
             (2) If a value can only be held by a single cell in unit, that cell can not hold another value.
         """
         total_candidates = 81 * 9
-        while self.valid() and self.get_total_candidates() != total_candidates:
+        while self.valid() and self.get_total_candidates() < total_candidates:
             total_candidates = self.get_total_candidates()
-            # print('Propagating. h =', h)
             # Propagate (1)
             for cell in self.cells:
                 cell.propagate_to_peers()
@@ -133,9 +132,15 @@ class Sudoku:
                 return False
         return True
 
-    def solved(self):
+    def solved(self) -> bool:
         """Checks if Sudoku is solved"""
-        return all([cell.solved() for cell in self.cells])
+        if not all([cell.valid() for cell in self.cells]):
+            return False
+
+        for unit in self.units:
+            if sorted(''.join([c.candidates for c in unit])) != '123456789':
+                return False
+        return True
 
     def serialize(self) -> List[str]:
         """Return a serialized form"""
