@@ -62,3 +62,4 @@ if __name__ == "__main__":
     solve_all('magictour_easy.csv', True)
     solve_all('magictour_hard.csv', True)
     solve_all('menneske_random.csv')
+    solve_all('norvig_hardest.csv', True)
