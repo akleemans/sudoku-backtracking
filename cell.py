@@ -8,10 +8,9 @@ class Cell:
     candidates: str
     cell_id: int
 
-    def __init__(self, candidates: str, cell_id: int):
+    def __init__(self, cell_id: int):
         """Initialize Cell with candidates and cell_id (for debugging)"""
         self.cell_id = cell_id
-        self.candidates = candidates
 
     def propagate_to_peers(self) -> None:
         """Propagate own number to peers (if set)"""
@@ -37,7 +36,7 @@ class Cell:
         """Returns if cell has a value"""
         return len(self.candidates) == 1
 
-    def set_guess(self, value: str):
-        """Sets a value and propagates to peers"""
-        self.candidates = value
-        self.propagate_to_peers()
+#    def set_guess(self, value: str):
+#        """Sets a value and propagates to peers"""
+#        self.candidates = value
+#        self.propagate_to_peers()

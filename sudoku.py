@@ -1,21 +1,17 @@
 from __future__ import annotations
 
-from typing import List, Set
+from typing import List, Set, Optional
 
 from cell import Cell
 
 
 class Sudoku:
-    cells: List[Cell]
+    cells: List[Cell] = []
     units: List[List[Cell]]
 
-    def __init__(self, candidate_list: List[str]):
-        """Initialize Sudoku with a list of candidates for each cell"""
-        self.cells = []
-        for i in range(len(candidate_list)):
-            candidates = candidate_list[i]
-            cell = Cell(candidates, i)
-            self.cells.append(cell)
+    def __init__(self, candidates: Optional[List[str]] = None):
+        """Initialize Sudoku with empty structure (cells & units)"""
+        self.cells = [Cell(i) for i in range(81)]
 
         # Build peers list
         for i in range(len(self.cells)):
@@ -43,40 +39,45 @@ class Sudoku:
         # Build units
         self.units = []
         for idx in range(9):
-            row = [c for c in self.cells[idx * 9:(idx + 1) * 9]]
-            self.units.append(row)
+            self.units.append([c for c in self.cells[idx * 9:(idx + 1) * 9]])
 
         for r_idx in range(9):
-            col = []
-            for c_idx in range(9):
-                col.append(self.cells[r_idx + c_idx * 9])
-            self.units.append(col)
+            self.units.append([self.cells[r_idx + c_idx * 9] for c_idx in range(9)])
 
         for i in [0, 3, 6, 27, 30, 33, 54, 57, 60]:
             block = [self.cells[idx] for idx in self.get_block_ids(i)]
             self.units.append(block)
 
+        # If candidate list was provided, set it
+        if candidates is not None:
+            self.set_state(candidates)
+
+    def set_state(self, candidate_list: List[str]) -> None:
+        """Reset cells to a state"""
+        for i in range(len(self.cells)):
+            self.cells[i].candidates = candidate_list[i]
+
     @staticmethod
-    def get_block_ids(idx: int) -> Set[int]:
+    def get_block_ids(idx: int) -> List[int]:
         """Return list of cell indexes for block"""
-        block_idx = set()
+        block_idx = []
         block_y = (idx % 9) - idx % 3
         line_start = int((idx - idx % 9) / 9)
         block_x = line_start - line_start % 3
         for x in range(3):
             for y in range(3):
                 idx = (block_x + x) * 9 + block_y + y
-                block_idx.add(idx)
+                block_idx.append(idx)
         return block_idx
 
-    def propagate(self):
+    def propagate(self) -> None:
         """Propagate constraints:
             (1) If a cell holds a value, no other peer of cell can hold that value.
             (2) If a value can only be held by a single cell in unit, that cell can not hold another value.
         """
-        h = 81 * 9
-        while self.valid() and self.get_hash() != h:
-            h = self.get_hash()
+        total_candidates = 81 * 9
+        while self.valid() and self.get_total_candidates() != total_candidates:
+            total_candidates = self.get_total_candidates()
             # print('Propagating. h =', h)
             # Propagate (1)
             for cell in self.cells:
@@ -88,8 +89,17 @@ class Sudoku:
                 for i in range(1, 10):
                     value = str(i)
                     # if only once in unit, remove other candidates from that cell
+                    if all_candidates.count(value) == 0:
+                        # If unit hasn't value somewhere as candidate, we're finished
+                        # print('Returning on count')
+                        return
                     if all_candidates.count(value) == 1:
-                        cell = [c for c in unit if value in c.candidates].pop()
+                        cells = [c for c in unit if value in c.candidates]
+                        if len(cells) == 0:
+                            # No more cells, we can stop here
+                            print('return on len(cells)')
+                            return
+                        cell = cells.pop()
                         if len(cell.candidates) > 1:
                             # print(cell.cell_id, 'Removing candidates:', cell.candidates, 'can only be', value)
                             cell.candidates = value
@@ -97,14 +107,12 @@ class Sudoku:
                             break
                 if quit_flag:
                     break
-        #print('Finished propagating, h =', h)
-        #input()
+        # print('Finished propagating, h =', h)
+        # input()
 
-    def get_hash(self) -> int:
+    def get_total_candidates(self) -> int:
         """Calculate hash to detect changes"""
-        candidates = sum([len(cell.candidates) for cell in self.cells])
-        # candidates = len(''.join(c.candidates for c in self.cells))
-        return candidates
+        return sum([len(cell.candidates) for cell in self.cells])
 
     def valid(self) -> bool:
         """Checks if Sudoku still solvable"""
@@ -116,6 +124,12 @@ class Sudoku:
         for unit in self.units:
             all_candidates = ''.join([c.candidates for c in unit])
             if not all([(str(v) in all_candidates) for v in range(1, 10)]):
+                return False
+
+        # Check if units contain numbers only once
+        for unit in self.units:
+            all_values = ''.join([c.candidates for c in unit if len(c.candidates) == 1])
+            if not all([all_values.count(str(v)) <= 1 for v in range(1, 10)]):
                 return False
         return True
 
