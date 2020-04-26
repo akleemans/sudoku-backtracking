@@ -16,31 +16,30 @@ class Solver:
         """Build and solve a Sudoku"""
         sudoku = Solver.deserialize_from_str(sudoku_str)
 
-        # initial propagation
+        # Initial propagation
         sudoku.propagate()
-        # print('Sudoku after first propagation:')
-        # Solver.show(sudoku)
+        if debug:
+            print('Sudoku after first propagation:')
+            Solver.show(sudoku)
 
         # If already solved or unsolvable, return
         if sudoku.solved():
+            Solver.log('Solved without backtracking.')
             return {str(sudoku)}
         if not sudoku.valid():
             raise ValueError('Unsolvable Sudoku!')
 
         # Add current state to stack:
-        # 1. current Sudoku as List of candidates,
-        # 2. The guess next up for next layer in format (41, '9'): "At index 41, try value '9'"
-        # Note that current_guess means next guess to try on the current layer, and the tried guess on an earlier layer.
-        # next_guess = Solver.calculate_guesses(sudoku)[0]
+        # 1. Current Sudoku as list of candidates
+        # 2. The last guess, for example (41, '9'): "At index 41, try value '9'". None if not yet guessed.
         stack: List[Tuple[List[str], Optional[Tuple[int, str]]]] = [(sudoku.serialize(), None)]
 
         # Work on stack with Depth-First-Search (DFS)
         iterations = 0
         solutions = set()
         while len(stack) > 0:
-            if iterations % 100 == 0:
-                print('>> Iteration ' + str(iterations) + ' /stack:' + str(len(stack)) + '/sol: ' + ' path: ' + str([i[1] for i in stack]))
-            Solver.log('>> Iteration ' + str(iterations) + ' / stack size:' + str(len(stack)) + ' path: ' + str([i[1] for i in stack]))
+            Solver.log('>> Iteration ' + str(iterations) + ' / stack size:' + str(len(stack)) + ' path: ' + str(
+                [i[1] for i in stack]))
             iterations += 1
 
             # 1. Pop state and calculate next guess
@@ -48,19 +47,23 @@ class Solver:
             sudoku.set_state(candidates)
 
             if debug:
-                Solver.show(sudoku)
-                # Solver.show_console(sudoku)
+                Solver.show_console(sudoku)
 
             possible_guesses = Solver.calculate_guesses(sudoku)
             if last_guess is None:
-                # Just starting on this layer
+                Solver.log('Starting to guess on layer.')
                 next_guess = possible_guesses[0]
             else:
                 last_guess_idx = possible_guesses.index(last_guess)
                 if last_guess_idx + 1 == len(possible_guesses):
-                    # No more guesses possible, go up
+                    Solver.log('No more guesses possible, go up.')
                     continue
                 next_guess = possible_guesses[last_guess_idx + 1]
+                # Important part: If one cell can't hold ANY number, don't try any others.
+                # It means that this branch can not be the solution!
+                if last_guess[0] != next_guess[0]:
+                    Solver.log('All numbers tried for one cell, branch can not be satisfied.')
+                    continue
 
             # 2. Do the guess
             idx, value = next_guess
@@ -69,17 +72,19 @@ class Solver:
 
             # 3. Decide how to proceed
             if sudoku.solved():
-                Solver.log('Solve loop: Found solution!')
+                Solver.log('Found solution!')
                 return {str(sudoku)}
 
             # Add current guess to stack
             stack.append((candidates, next_guess))
 
             if sudoku.valid():
+                Solver.log('Sudoku valid but not solved, going to next layer.')
                 stack.append((sudoku.serialize(), None))
 
         # For now, just return single solution
         Solver.log('Finished checking, found solutions:' + str(solutions))
+        print('Found solution in', iterations, 'iterations.')
         return solutions
 
     @staticmethod
@@ -105,7 +110,7 @@ class Solver:
             cell = sudoku.cells[i]
             value = str(cell)
             if value == ' ':
-                # value = '1 2 3\n4 5 6\n7 8 9'
+                # If no single value for cell, show remaining candidates
                 value = '\n'.join(
                     [' '.join([(str(i) if str(i) in cell.candidates else ' ') for i in range(j * 3 + 1, j * 3 + 3 + 1)])
                      for j in range(3)])

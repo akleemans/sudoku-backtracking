@@ -9,7 +9,7 @@ class Cell:
     cell_id: int
 
     def __init__(self, cell_id: int):
-        """Initialize Cell with candidates and cell_id (for debugging)"""
+        """Initialize Cell with cell_id (for debugging)"""
         self.cell_id = cell_id
 
     def propagate_to_peers(self) -> None:
@@ -21,7 +21,6 @@ class Cell:
     def remove_candidate(self, value: str) -> None:
         """Remove value from candidates"""
         if value in self.candidates:
-            # print(self.cell_id, 'Removing', value, 'from candidates:', self.candidates)
             self.candidates = self.candidates.replace(value, '')
 
     def __str__(self) -> str:
@@ -35,8 +34,3 @@ class Cell:
     def solved(self) -> bool:
         """Returns if cell has a value"""
         return len(self.candidates) == 1
-
-#    def set_guess(self, value: str):
-#        """Sets a value and propagates to peers"""
-#        self.candidates = value
-#        self.propagate_to_peers()

@@ -134,11 +134,12 @@ class Sudoku:
 
     def solved(self) -> bool:
         """Checks if Sudoku is solved"""
-        if not all([cell.valid() for cell in self.cells]):
+        if not all([cell.solved() for cell in self.cells]):
             return False
 
         for unit in self.units:
-            if sorted(''.join([c.candidates for c in unit])) != '123456789':
+            values = ''.join([c.candidates for c in unit])
+            if not len(values) == 9 or not all([(v in values) for v in '123456789']):
                 return False
         return True
 
