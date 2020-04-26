@@ -104,8 +104,17 @@ class Solver:
         window.title("Sudoku")
         for i in range(len(sudoku.cells)):
             cell = sudoku.cells[i]
-            label = Label(window, text=str(cell), width=4, height=2, borderwidth=1, relief="solid",
-                          font=("Helvetica", 22), fg='black')
+            value = str(cell)
+            if value == ' ':
+                # value = '1 2 3\n4 5 6\n7 8 9'
+                value = '\n'.join(
+                    [' '.join([(str(i) if str(i) in cell.candidates else ' ') for i in range(j * 3 + 1, j * 3 + 3 + 1)])
+                     for j in range(3)])
+                label = Label(window, text=value, width=6, height=3, borderwidth=1, relief="solid",
+                              font=("Helvetica", 14), fg='black')
+            else:
+                label = Label(window, text=value, width=4, height=2, borderwidth=1, relief="solid",
+                              font=("Helvetica", 22), fg='black')
             c = i % 9
             r = int((i - i % 9) / 9)
             padx = 2 if c % 3 == 1 else 0
