@@ -56,6 +56,9 @@ if __name__ == "__main__":
     # First of Norvigs "hard" puzzles
     # solve_single('4.....8.5.3..........7......2.....6.....8.4......1.......6.3.7.5..2.....1.4......')
 
+    # A hard one from menneske
+    # solve_single('7.18.43.......2.....453..7.6.....7..1...9...5..8.....38...195....23........6.89.4')
+
     solve_all('magictour_easy.csv', True)
     solve_all('magictour_hard.csv', True)
     solve_all('menneske_random.csv')
