@@ -15,13 +15,13 @@ class Sudoku:
 
         # Build peers list
         for i in range(len(self.cells)):
-            # row
             cell = self.cells[i]
+
+            # row
             idx = i - i % 9
             row = set(c for c in self.cells[idx:idx + 9] if c != cell)
 
             # column
-            cell = self.cells[i]
             base_idx = i % 9
             col = set()
             for j in range(9):
@@ -83,31 +83,15 @@ class Sudoku:
                 cell.propagate_to_peers()
             # Propagate (2)
             for unit in self.units:
-                quit_flag = False
                 all_candidates = ''.join([c.candidates for c in unit])
                 for i in range(1, 10):
                     value = str(i)
-                    # if only once in unit, remove other candidates from that cell
-                    if all_candidates.count(value) == 0:
-                        # If unit hasn't value somewhere as candidate, we're finished
-                        # print('Returning on count')
-                        return
                     if all_candidates.count(value) == 1:
                         cells = [c for c in unit if value in c.candidates]
-                        if len(cells) == 0:
-                            # No more cells, we can stop here
-                            print('return on len(cells)')
-                            return
                         cell = cells.pop()
                         if len(cell.candidates) > 1:
-                            # print(cell.cell_id, 'Removing candidates:', cell.candidates, 'can only be', value)
                             cell.candidates = value
-                            quit_flag = True
                             break
-                if quit_flag:
-                    break
-        # print('Finished propagating, h =', h)
-        # input()
 
     def get_total_candidates(self) -> int:
         """Calculate hash to detect changes"""
@@ -115,7 +99,6 @@ class Sudoku:
 
     def valid(self) -> bool:
         """Checks if Sudoku still solvable"""
-        # Check if all cells are still valid
         if not all([cell.valid() for cell in self.cells]):
             return False
 
