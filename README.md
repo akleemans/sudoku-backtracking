@@ -11,7 +11,22 @@ Uses tkinter to show a visualization (with candidates):
 
 Inspired by [Ali Spittel's post](https://medium.com/free-code-camp/coming-back-to-old-problems-how-i-finally-wrote-a-sudoku-solving-algorithm-3b371e6c63bd) and the amazing Peter Norvig essay ["Solving Every Sudoku Puzzle"](https://norvig.com/sudoku.html).
 
+### Run
+
+To start solving, just run:
+
+    python3 main.py
+    
+This will solve all the Sudokus listed below.
+
+You can specify if a single Sudoku should be solved (`solve_single`) or a all from a file (`solve_all`):
+
+    solve_single('7.18.43.......2.....453..7.6.....7..1...9...5..8.....38...195....23........6.89.4')
+    solve_all('magictour_easy.csv')
+
 ### Sudokus
+
+Some Sudokus for testing and benchmarking can be found in the `Sudoku` folder:
 
 * `magictour_easy.csv`: 1011 easy puzzles (without solutions), [source](http://magictour.free.fr/msk_009)
 * `magictour_hard.csv`: 95 hard puzzles (without solutions), [source](http://magictour.free.fr/top95)
