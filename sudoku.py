@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List, Optional
+from typing import List
 
 from cell import Cell
 
@@ -9,7 +9,7 @@ class Sudoku:
     cells: List[Cell] = []
     units: List[List[Cell]]
 
-    def __init__(self, candidates: Optional[List[str]] = None):
+    def __init__(self):
         """Initialize Sudoku with empty structure (cells & units)"""
         self.cells = [Cell(i) for i in range(81)]
 
@@ -48,10 +48,6 @@ class Sudoku:
             block = [self.cells[idx] for idx in self.get_block_ids(i)]
             self.units.append(block)
 
-        # If candidate list was provided, set it
-        if candidates is not None:
-            self.set_state(candidates)
-
     def set_state(self, candidate_list: List[str]) -> None:
         """Reset cells to a state"""
         for i in range(len(self.cells)):
@@ -84,12 +80,11 @@ class Sudoku:
             # Propagate (2)
             for unit in self.units:
                 all_candidates = ''.join([c.candidates for c in unit])
-                for i in range(1, 10):
-                    value = str(i)
+                for value in [str(v) for v in range(1, 10)]:
                     if all_candidates.count(value) == 1:
-                        cells = [c for c in unit if value in c.candidates]
-                        cell = cells.pop()
+                        cell = next((c for c in unit if value in c.candidates), None)
                         if len(cell.candidates) > 1:
+                            # Found a cell which can only hold value
                             cell.candidates = value
                             break
 

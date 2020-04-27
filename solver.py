@@ -13,7 +13,8 @@ class Solver:
 
     @staticmethod
     def solve(sudoku_str: str, solve_all=False) -> Set[str]:
-        """Build and solve a Sudoku"""
+        """Build a Sudoku from a string and solve it.
+        'solve_all' can be specified to not stop at the first solution."""
         sudoku = Solver.deserialize_from_str(sudoku_str)
 
         # Initial propagation
@@ -65,7 +66,7 @@ class Solver:
                     Solver.log('All numbers tried for one cell, branch can not be satisfied.')
                     continue
 
-            # 2. Do the guess
+            # 2. Do the guess & add to stack
             idx, value = next_guess
             sudoku.cells[idx].candidates = value
             sudoku.propagate()
@@ -73,7 +74,11 @@ class Solver:
             # 3. Decide how to proceed
             if sudoku.solved():
                 Solver.log('Found solution!')
-                return {str(sudoku)}
+                solutions.add(str(sudoku))
+                if not solve_all:
+                    return solutions
+                else:
+                    continue
 
             # Add current guess to stack
             stack.append((candidates, next_guess))

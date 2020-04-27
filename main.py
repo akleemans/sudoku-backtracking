@@ -33,11 +33,11 @@ def solve_all(filename: str, puzzles_only=False):
     print('Solved all in', round(total_solving_time, 8), 's')
 
 
-def solve_single(sudoku_str: str):
+def solve_single(sudoku_str: str, solve_all=False):
     """Solve a single Sudoku and show solution"""
     print('\nSolving', sudoku_str)
     start = time.time()
-    solutions = Solver.solve(sudoku_str)
+    solutions = Solver.solve(sudoku_str, solve_all)
     if len(solutions) == 0:
         print('!!! Got no solution :(((')
     elif len(solutions) > 1:
@@ -59,6 +59,10 @@ if __name__ == "__main__":
     # A hard one from menneske
     # solve_single('7.18.43.......2.....453..7.6.....7..1...9...5..8.....38...195....23........6.89.4')
 
+    # Get all solutions for single
+    # solve_single('7.18.43.......2.....453..7.6.....7..1...9...5..8.....38...195....23........6.89.4', True)
+
+    # Solve batch of Sudokus
     solve_all('magictour_easy.csv', True)
     solve_all('magictour_hard.csv', True)
     solve_all('menneske_random.csv')
