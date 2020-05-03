@@ -42,9 +42,9 @@ def solve_single(sudoku_str: str, solve_all=False):
         print('!!! Got no solution :(((')
     elif len(solutions) > 1:
         print('!!! Got multiple solutions:', solutions)
-
-    solved_str = solutions.pop()
     end = time.time()
+    solved_str = solutions.pop()
+    print('Solution:', solved_str)
     Solver.show(Solver.deserialize_from_str(solved_str))
     print('Solved in', round(end - start, 8), 's')
 
@@ -63,7 +63,7 @@ if __name__ == "__main__":
     # solve_single('7.18.43.......2.....453..7.6.....7..1...9...5..8.....38...195....23........6.89.4', True)
 
     # Solve batch of Sudokus
-    solve_all('magictour_easy.csv', True)
-    solve_all('magictour_hard.csv', True)
-    solve_all('menneske_random.csv')
-    solve_all('norvig_hardest.csv', True)
+    # solve_all('magictour_easy.csv', True)
+    # solve_all('magictour_hard.csv', True)
+    # solve_all('menneske_random.csv')
+    # solve_all('norvig_hardest.csv', True)
